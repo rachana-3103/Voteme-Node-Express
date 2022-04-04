@@ -555,7 +555,7 @@ exports.getMyQuery = async (req, res) => {
             req.query.UserId = user._id;
         }
         const result = await this.getQuery(req, res);
-        return new Response(result).sendResponse();
+        return res.send({ message: "Success", Data: result });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -779,12 +779,10 @@ exports.getQuery = async (req, res) => {
                 }
             }
         }
-
         if (internalCall) {
             return result;
         }
-
-        return new Response(result).sendResponse();
+        return res.send({ message: "Success", Data: result });
 
     } catch (error) {
         console.log(error);
@@ -808,8 +806,9 @@ exports.giveVote = async (req, res) => {
         }
 
         const queryObj = await Query.findOne({ "_id": queryId }).lean();
+
         if (queryObj.UserId == userID) {
-            return new Exception('ValidationError', 'Sorry, You are the creator so you are not able to given vote').sendError();
+            return res.send({ message: 'Sorry, You are the creator so you are not able to given vote' });
         }
         const queryOptionObj = await QueryOption.findOne({ "QueryId": queryId }).lean();
         let userVotedForQuery = false;
@@ -840,8 +839,7 @@ exports.giveVote = async (req, res) => {
                 //"TotalVotes": queryOptionObj.TotalVotes + 1
             }
         }, { new: true });
-
-        return new Response(updateResult).sendResponse();
+        return res.send({ message: "Success", Data: updateResult });
     } catch (error) {
         console.log(error, "^^");
         return new Exception('GeneralError').sendError(error);
@@ -852,7 +850,6 @@ exports.getQueryDetailById = async (req, res) => {
     try {
         const id = req.params.id;
         const queryObj = { "_id": ObjectId(id) };
-
 
         const result = await Query.aggregate(
             [{ $match: queryObj },
@@ -893,7 +890,6 @@ exports.getQueryDetailById = async (req, res) => {
         let responseObject = {};
         const authToken = req.headers.authorization.split(' ')[1];
         const user = await User.findOne({ "AuthoToken": authToken }).lean();
-
         for (let i = 0; i < result[0].Options[0].Options.length; i++) {
             const likeordislikeResult = await QueryLikeorDisLike.findOne({
                 QueryId: id,
@@ -933,6 +929,7 @@ exports.getQueryDetailById = async (req, res) => {
         });
 
         responseObject.UserId = result[0].UserId;
+        responseObject.QueryId = result[0]._id;
         responseObject.Query = result[0].Query;
         responseObject.QueryType = result[0].QueryType;
         responseObject.File = result[0].File;
@@ -962,7 +959,7 @@ exports.getQueryDetailById = async (req, res) => {
         }).lean();
 
         responseObject.UserDetails = userObj;
-        return new Response(responseObject).sendResponse();
+        return res.send({ message: "Success", Data: responseObject });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -1946,31 +1943,59 @@ exports.querylikeordislike = async (req, res) => {
         const queryId = req.params.queryid;
 
         if (typeof like !== "boolean" && like !== null) {
-            return new Exception('ValidationError', 'Please Provide valid input of Like').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Please Provide valid input of Like'
+                }
+            });
         }
         if (!likedBy) {
-            return new Exception('ValidationError', 'Please Provide LikedBy').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Please Provide LikedBy'
+                }
+            });
         }
         const queryObj = await Query.findOne({ "_id": queryId }).lean();
         if (queryObj === null) {
-            return new Exception('ValidationError', 'Query not found.').sendError();
+            return res.send('Query not found.');
         }
         if (queryObj.UserId == likedBy) {
-            return new Exception('ValidationError', 'Sorry, You are the creator so you are not able to given Like').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are the creator so you are not able to given Like'
+                }
+            });
         }
         const queryLikeObj = await QueryLikeorDisLike.findOne({ "QueryId": queryId, "LikedBy": likedBy });
 
         if (queryLikeObj && like === true && queryLikeObj.Like === true && queryLikeObj.LikedBy === likedBy) {
-            return new Exception('ValidationError', 'Sorry, You are already liked in this query').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are already liked in this query'
+                }
+            });
         }
         if (queryLikeObj && like === false && queryLikeObj.Like === false && queryLikeObj.LikedBy === likedBy) {
-            return new Exception('ValidationError', 'Sorry, You are already disliked in this query').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are already disliked in this query'
+                }
+            });
         }
         if (queryLikeObj == null && like === null && queryObj.TotalLikes === 0) {
-            return new Exception('ValidationError', 'Sorry, You are not UnLike in this query').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are not UnLike in this query'
+                }
+            });
         }
         if (queryLikeObj && like === null && queryObj.TotalLikes === 0) {
-            return new Exception('ValidationError', 'Sorry, You are not UnLike in this query').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are not UnLike in this query'
+                }
+            });
         }
         let totalLikeObj = {};
         let successMessage = '';
@@ -2078,7 +2103,7 @@ exports.querylikeordislike = async (req, res) => {
         totalLikeObj.TotalVotes = query.TotalVotes;
         totalLikeObj.TotalViews = query.TotalViews;
 
-        return new Response({ message: successMessage, Total: totalLikeObj }).sendResponse();
+        return res.send({ message: successMessage, Total: totalLikeObj });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -2135,7 +2160,8 @@ exports.getQueryLikeOrDislike = async (req, res) => {
             }
             ]
         );
-        return new Response(result).sendResponse();
+        
+        return res.send({ message: "Success", Data: result });
     } catch (error) {
         return new Exception('GeneralError').sendError(error);
     }
@@ -2147,29 +2173,36 @@ exports.viewQuery = async (req, res) => {
         const queryId = req.params.queryid;
         const viewedBy = req.params.viewedby;
 
-        const queryViewObj = await Queryview.findOne({ "QueryId": queryId, "ViewedBy": viewedBy });
-        if (queryViewObj !== null && queryViewObj.ViewedBy === viewedBy) {
-            return new Exception('ValidationError', 'Sorry, You are already viewed in this query').sendError();
-        }
+        // if (queryViewObj !== null && queryViewObj.ViewedBy === viewedBy) {
+        //     return new Exception('ValidationError', 'Sorry, You are already viewed in this query').sendError();
+        // }
         const viewObject = {};
         let totalLikeObj = {};
         let successMessage = '';
         viewObject.QueryId = queryId;
         viewObject.ViewedBy = viewedBy;
         viewObject.CreatedAt = new Moment();
-        const queryViewObject = new Queryview(viewObject);
-        await queryViewObject.save();
-        let query = await Query.findOneAndUpdate({ "_id": queryId }, {
-            $inc: { TotalViews: 1 }
-        }, { returnOriginal: false });
+
+        const queryView = await Queryview.findOne({ "QueryId": queryId, "ViewedBy": viewedBy });
+        if (!queryView) {
+            const queryViewObject = new Queryview(viewObject);
+            await queryViewObject.save();
+        }
+        if (!queryView) {
+            await Query.findByIdAndUpdate({ "_id": queryId }, {
+                $inc: { TotalViews: 1 }
+            });
+        }
+        const query = await Query.findOne({ "_id": queryId });
         totalLikeObj.TotalLikes = query.TotalLikes;
         totalLikeObj.TotalDisLikes = query.TotalDisLikes;
         totalLikeObj.TotalComments = query.TotalComments;
         totalLikeObj.TotalVotes = query.TotalVotes;
         totalLikeObj.TotalViews = query.TotalViews;
         successMessage = 'Query Viewed successfully!!';
-        return new Response({ message: successMessage, Total: totalLikeObj }).sendResponse();
+        return res.send({ message: successMessage, Total: totalLikeObj });
     } catch (error) {
+        console.log(error);
         return new Exception('GeneralError').sendError(error);
     }
 }

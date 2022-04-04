@@ -277,14 +277,14 @@ exports.votemeSignUp = async (req, res) => {
     }
 }
 
-exports.updateProfile = async (request, res) => {
+exports.updateProfile = async (req, res) => {
     try {
-        const id = request.params.id;
-        const firstName = request.payload.FirstName;
-        const lastName = request.payload.LastName;
-        const mobile = request.payload.Mobile;
-        const dob = request.payload.BirthDate;
-        const image = request.payload.Image;
+        const id = req.params.id;
+        const firstName = req.body.FirstName;
+        const lastName = req.body.LastName;
+        const mobile = req.body.Mobile;
+        const dob = req.body.BirthDate;
+        const image = req.body.Image;
         if (!firstName) {
             return new Exception('ValidationError', 'Please Provide First Name').sendError();
         }
@@ -325,10 +325,9 @@ exports.updateProfile = async (request, res) => {
                 "UpdatedAt": new Moment()
             }
         });
-        const user = await User.findOne({ "_id": id }).lean();
         // }
 
-        return new Response({ message: 'Awesome! user updated successfully' }).sendResponse();
+        return res.send({ message: 'Awesome! user updated successfully' });
     } catch (error) {
         if (error.code == 11000 && error.errmsg.search("Token_1 dup key") !== -1) {
             return new Exception('GeneralError', 'Sorry! Token is already exists, please try again with new Token.').sendError();
@@ -342,10 +341,10 @@ exports.updateProfile = async (request, res) => {
     }
 }
 
-exports.updateUserCategory = async (request, res) => {
+exports.updateUserCategory = async (req, res) => {
     try {
-        const authToken = request.headers.authorization.split(' ')[1];
-        const category = request.body.Category;
+        const authToken = req.headers.authorization.split(' ')[1];
+        const category = req.body.Category;
 
         const user = await User.findOne({ "AuthoToken": authToken }).lean();
         const userCategory = [];
@@ -383,9 +382,9 @@ exports.updateUserCategory = async (request, res) => {
     }
 }
 
-exports.getProfile = async (request, res) => {
+exports.getProfile = async (req, res) => {
     try {
-        const id = request.params.id;
+        const id = req.params.id;
         const userDetail = await User.findOne({ "_id": id }).lean();
         userDetail.BirthDate = Moment(userDetail.BirthDate, 'DD/MM/YYYY');
         delete userDetail.AuthoToken;
@@ -396,15 +395,15 @@ exports.getProfile = async (request, res) => {
     }
 }
 
-exports.getUsers = async (request, res) => {
+exports.getUsers = async (req, res) => {
     try {
 
-        let page = parseInt(request.query.PageNo) || 1;
-        let maxRecords = parseInt(request.query.Rows) || 10;
+        let page = parseInt(req.query.PageNo) || 1;
+        let maxRecords = parseInt(req.query.Rows) || 10;
 
         const pageNumber = ((parseInt(page) - 1) * parseInt(maxRecords));
 
-        let date = request.query.Date;
+        let date = req.query.Date;
         if (page === undefined || page === null || page === '') {
             page = 1;
         }
@@ -443,33 +442,33 @@ exports.getUsers = async (request, res) => {
         let responseObject = {};
         responseObject.Summary = result[0].Summary;
         responseObject.Records = [];
-        return new Response(result).sendResponse();
+        return res.send({ message: "Success", Data: result });
 
     } catch (error) {
         return new Exception('GeneralError').sendError(error);
     }
 }
 
-exports.deleteUserProfile = async (request, res) => {
+exports.deleteUserProfile = async (req, res) => {
     try {
-        const id = request.params.id;
+        const id = req.params.id;
         await User.remove({
             _id: id
         });
-        return new Response({ message: "User deleted successfully!!" }).sendResponse();
+        return res.send({ message: "User deleted successfully!!" });
     } catch (e) {
         return new Exception('GeneralError').sendError(e);
     }
 }
 
-exports.logout = async (request, res) => {
+exports.logout = async (req, res) => {
     try {
-        const authToken = request.headers.authorization.split(' ')[1];
+        const authToken = req.headers.authorization.split(' ')[1];
         const userDetail = await User.findOne({ "AuthoToken": authToken }).lean();
         await User.update(
             { "_id": userDetail._id },
             { $unset: { Token: "Token" } })
-        return new Response({ message: "User logout successfully!!" }).sendResponse();
+        return res.send({ message: "User logout successfully!!" });
     } catch (e) {
         console.log(e);
         return new Exception('GeneralError').sendError(e);

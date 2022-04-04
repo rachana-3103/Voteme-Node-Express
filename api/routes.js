@@ -22,7 +22,7 @@ module.exports = app => {
     router.put("/voteme/editquery/:id", pollsController.updatePoll);
     router.get("/voteme/query", pollsController.getQuery);
     router.get("/voteme/myquery", pollsController.getMyQuery);
-    router.get("/voteme/givevote", pollsController.giveVote);
+    router.post("/voteme/givevote", pollsController.giveVote);
     router.get("/voteme/querydetail/:id", pollsController.getQueryDetailById);
     router.delete("/voteme/deletequery/:id", pollsController.deleteQuery);
     router.post("/voteme/:queryid/likeordislike", pollsController.querylikeordislike);
