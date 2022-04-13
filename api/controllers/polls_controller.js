@@ -796,19 +796,35 @@ exports.giveVote = async (req, res) => {
         const queryId = req.body.QueryId;
         const optionId = req.body.OptionId;
         if (!userID) {
-            return new Exception('ValidationError', 'Please Provide UserID').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Please Provide UserID'
+                }
+            });
         }
         if (!queryId) {
-            return new Exception('ValidationError', 'Please Provide Query Id').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Please Provide Query Id'
+                }
+            });
         }
         if (!optionId) {
-            return new Exception('ValidationError', 'Please Provide Option Id').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Please Provide Option Id'
+                }
+            });
         }
 
         const queryObj = await Query.findOne({ "_id": queryId }).lean();
 
         if (queryObj.UserId == userID) {
-            return res.send({ message: 'Sorry, You are the creator so you are not able to given vote' });
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are the creator so you are not able to given vote'
+                }
+            });
         }
         const queryOptionObj = await QueryOption.findOne({ "QueryId": queryId }).lean();
         let userVotedForQuery = false;
@@ -825,7 +841,11 @@ exports.giveVote = async (req, res) => {
             }
         }
         if (userVotedForQuery) {
-            return new Exception('ValidationError', 'User Already voted for this query').sendError();
+            return res.send({
+                Error: {
+                    Message: 'User Already voted for this query'
+                }
+            });
         }
         await Query.findOneAndUpdate({ "_id": queryId }, {
             $inc: { TotalVotes: 1 }
@@ -1038,7 +1058,13 @@ exports.deleteQuery = async (req, res) => {
         await Query.remove({
             "_id": queryId
         });
-        return new Response({ message: "Query deleted successfully!!" }).sendResponse();
+        await Queryview.remove({
+            "_id": queryId
+        });
+         await QueryComment.remove({
+            "_id": queryId
+        });
+        return res.send({ message: "Query deleted successfully!!" });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -2160,7 +2186,7 @@ exports.getQueryLikeOrDislike = async (req, res) => {
             }
             ]
         );
-        
+
         return res.send({ message: "Success", Data: result });
     } catch (error) {
         return new Exception('GeneralError').sendError(error);
@@ -2213,14 +2239,18 @@ exports.createComments = async (req, res) => {
         const comment = req.body.Comment;
         const commentedBy = req.body.CommentedBy;
         if (!comment) {
-            return new Exception('ValidationError', 'Please Provide Comment').sendError();
+            return res.send('Please Provide Comment');
         }
         if (!commentedBy) {
-            return new Exception('ValidationError', 'Please Provide CommentedBy').sendError();
+            return res.send('Please Provide CommentedBy');
         }
         const queryObj = await Query.findOne({ "_id": queryId }).lean();
         if (queryObj.UserId == commentedBy) {
-            return new Exception('ValidationError', 'Sorry, You are the creator so you are not able to given Comments').sendError();
+            return res.send({
+                Error: {
+                    Message: 'Sorry, You are the creator so you are not able to given Comments'
+                }
+            });
         }
         const postComments = {};
         postComments.QueryId = queryId;
@@ -2231,10 +2261,11 @@ exports.createComments = async (req, res) => {
         postComments.CreatedAt = new Moment();
         const commentObj = new QueryComment(postComments);
         const result = await commentObj.save();
+
         await Query.findOneAndUpdate({ "_id": queryId }, {
             $inc: { TotalComments: 1 }
         });
-        return new Response(result).sendResponse();
+        return res.send({ message: 'Success', data: result });
     } catch (error) {
         return new Exception('GeneralError').sendError(error);
     }
@@ -2290,23 +2321,30 @@ exports.commentslikeordislike = async (req, res) => {
         const commentId = req.params.commentid;
 
         if (typeof like !== "boolean") {
-            return new Exception('ValidationError', 'Please Provide valid input of Like').sendError();
+            return res.send('Please Provide valid input of Like');
         }
         if (!likedBy) {
-            return new Exception('ValidationError', 'Please Provide LikedBy').sendError();
+            return res.send('Please Provide LikedBy');
         }
         const queryObj = await Query.findOne({ "_id": queryId }).lean();
         if (queryObj.UserId == likedBy) {
-            return new Exception('ValidationError', 'Sorry, You are the creator so you are not able to given Like').sendError();
+            return res.send({
+                Error: { Message: 'Sorry, You are the creator so you are not able to given Like' }
+            });
         }
         const commentObj = await QueryComment.findOne({ "_id": commentId });
+
         if (like === false && commentObj.Likes.length === 0) {
-            return new Exception('ValidationError', 'Sorry, You can not unliked for this comment').sendError();
+            return res.send({
+                Error: { Message: 'Sorry, You can not unliked for this comment' }
+            });
         }
         let successMessage = '';
         for (let i = 0; i < commentObj.Likes.length; i++) {
             if (like === true && commentObj.Likes[i].LikedBy === likedBy) {
-                return new Exception('ValidationError', 'Sorry, You are already liked in this comment').sendError();
+                return res.send({
+                    Error: { Message: 'Sorry, You are already liked in this comment' }
+                });
             } else if (like === false && commentObj.Likes[i].LikedBy === likedBy) {
                 await QueryComment.findOneAndUpdate(
                     { _id: commentId },
@@ -2337,7 +2375,7 @@ exports.commentslikeordislike = async (req, res) => {
         let totalCommentLikeObj = {};
         const queryCommentObj = await QueryComments.findOne({ "_id": commentId }).lean();
         totalCommentLikeObj.TotalLikes = queryCommentObj.TotalLikes;
-        return new Response({ message: successMessage, Total: totalCommentLikeObj }).sendResponse();
+        return res.send({ message: successMessage, Total: totalCommentLikeObj });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -2441,7 +2479,7 @@ exports.getComments = async (req, res) => {
                 }
             }
         });
-        return new Response(result).sendResponse();
+        return res.send({ message: 'Success', data: result });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
