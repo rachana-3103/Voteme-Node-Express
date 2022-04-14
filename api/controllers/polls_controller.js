@@ -653,7 +653,8 @@ exports.getQuery = async (req, res) => {
                     "TotalLikes": 1,
                     "TotalDisLikes": 1,
                     "TotalVotes": 1,
-                    "Category": 1
+                    "Category": 1,
+                    "ChartOption":1,
                     // "CategoryDetails.CategoryName":1
                 }
             },
@@ -782,6 +783,8 @@ exports.getQuery = async (req, res) => {
         if (internalCall) {
             return result;
         }
+        console.log(result ,'...EE');
+        
         return res.send({ message: "Success", Data: result });
 
     } catch (error) {
@@ -1059,10 +1062,10 @@ exports.deleteQuery = async (req, res) => {
             "_id": queryId
         });
         await Queryview.remove({
-            "_id": queryId
+            "QueryId": queryId
         });
          await QueryComment.remove({
-            "_id": queryId
+            "QueryId": queryId
         });
         return res.send({ message: "Query deleted successfully!!" });
     } catch (error) {
@@ -1950,7 +1953,7 @@ exports.updatePoll = async (req, res) => {
 
             }
         }
-        return new Response({ message: 'Query Updated successfully!!' }).sendResponse();
+        return res.send({ message: 'Query Updated successfully!!' });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
