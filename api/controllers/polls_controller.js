@@ -539,7 +539,7 @@ exports.createPoll = async (req, res) => {
         queryOptionObj.Options = options;
 
         await queryOptionObj.save();
-        return res.send({ message: "Success", Data: result });
+        return res.send({ message: "Query Created Successfully!", Data: result });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -654,7 +654,7 @@ exports.getQuery = async (req, res) => {
                     "TotalDisLikes": 1,
                     "TotalVotes": 1,
                     "Category": 1,
-                    "ChartOption":1,
+                    "ChartOption": 1,
                     // "CategoryDetails.CategoryName":1
                 }
             },
@@ -783,8 +783,7 @@ exports.getQuery = async (req, res) => {
         if (internalCall) {
             return result;
         }
-        console.log(result ,'...EE');
-        
+
         return res.send({ message: "Success", Data: result });
 
     } catch (error) {
@@ -1064,7 +1063,7 @@ exports.deleteQuery = async (req, res) => {
         await Queryview.remove({
             "QueryId": queryId
         });
-         await QueryComment.remove({
+        await QueryComment.remove({
             "QueryId": queryId
         });
         return res.send({ message: "Query deleted successfully!!" });
@@ -2295,7 +2294,7 @@ exports.commentReply = async (req, res) => {
         postComments.CreatedAt = new Moment();
         const commentObj = new QueryComment(postComments);
         const result = await commentObj.save();
-        return new Response(result).sendResponse();
+        return res.send({ message: 'Comment Reply Added Successfully!!', data: result });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
@@ -2310,7 +2309,10 @@ exports.deleteComment = async (req, res) => {
             "_id": commentId,
             "QueryId": queryId
         });
-        return new Response({ message: "Comment deleted successfully!!" }).sendResponse();
+        await Query.findOneAndUpdate({ "_id": queryId }, {
+            $inc: { TotalComments: -1 }
+        });
+        return res.send({ message: "Comment deleted successfully!!" });
     } catch (error) {
         return new Exception('GeneralError').sendError(error);
     }
@@ -2578,7 +2580,7 @@ exports.getCommentReply = async (req, res) => {
             }
         });
 
-        return new Response(result).sendResponse();
+        return res.send({ data: result });
     } catch (error) {
         console.log(error);
         return new Exception('GeneralError').sendError(error);
