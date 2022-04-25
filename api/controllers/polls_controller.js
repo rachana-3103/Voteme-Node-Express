@@ -959,7 +959,7 @@ exports.getQueryDetailById = async (req, res) => {
         responseObject.Category = result[0].Category;
         responseObject.Category = categoryArray;
         responseObject.IsPublic = result[0].IsPublic;
-        responseObject.EndDate = Moment.unix(result[0].EndDate).format('DD/MM/YYYY hh:mm A'); //format('DD/MM/YYYY hh:mm A');
+        responseObject.EndDate = Moment.unix(result[0].EndDate).format('YYYY-MM-DD'); //format('DD/MM/YYYY hh:mm A');
         responseObject.CreatedAt = result[0].CreatedAt;
         responseObject.Options = result[0].Options[0].Options;
         responseObject.OptionType = result[0].Options[0].OptionType;
@@ -1064,6 +1064,9 @@ exports.deleteQuery = async (req, res) => {
             "QueryId": queryId
         });
         await QueryComment.remove({
+            "QueryId": queryId
+        });
+        await QueryLikeOrDislkie.remove({
             "QueryId": queryId
         });
         return res.send({ message: "Query deleted successfully!!" });
