@@ -353,16 +353,16 @@ exports.createPoll = async (req, res) => {
         if (!chartOption) {
             return new Exception('ValidationError', 'Please Provide ChartOption').sendError();
         }
-        if (!endDate) {
-            return new Exception('ValidationError', 'Please Provide EndDate').sendError();
-        }
-        else {
-            if (!Moment(endDate, 'DD/MM/YYYY HH:mm A', true).isValid()) {
-                return new Exception('ValidationError', 'End Date Must Be DD/MM/YYYY HH:mm A (25/05/2020 05:10 AM) ').sendError();
-            } else if (Moment(endDate, 'DD/MM/YYYY HH:mm A') < Moment()) {
-                return new Exception('ValidationError', 'Please Provide Valid EndDate').sendError();
-            }
-        }
+        // if (!endDate) {
+        //     return new Exception('ValidationError', 'Please Provide EndDate').sendError();
+        // }
+        // else {
+        //     if (!Moment(endDate, 'DD-MM-YYYY HH:mm A', true).isValid()) {
+        //         return new Exception('ValidationError', 'End Date Must Be DD-MM-YYYY HH:mm A (25/05/2020 05:10 AM) ').sendError();
+        //     } else if (Moment(endDate, 'DD-MM-YYYY HH:mm A') < Moment()) {
+        //         return new Exception('ValidationError', 'Please Provide Valid EndDate').sendError();
+        //     }
+        // }
 
         if (!optionType) {
             return new Exception('ValidationError', 'Please Provide OptionType').sendError();
@@ -406,7 +406,7 @@ exports.createPoll = async (req, res) => {
         postData.TotalLikes = 0;
         postData.TotalDisLikes = 0;
         postData.TotalVotes = 0;
-        postData.EndDate = Moment(endDate, 'DD/MM/YYYY hh:mm A').unix();
+        postData.EndDate = Moment(endDate, 'DD-MM-YYYY').unix();
         postData.CreatedAt = new Moment();
         postData.InActive = false;
         postData.File = "";
@@ -691,9 +691,9 @@ exports.getQuery = async (req, res) => {
         //console.log(result[0]);
         let newArray = result[0].Records.map(function (object) {
 
-            object.EndDate = Moment.unix(object.EndDate).format('DD/MM/YYYY hh:mm A');
+            object.EndDate = Moment.unix(object.EndDate).format('DD-MM-YYYY');
 
-            // object.CreatedAt= Moment(object.CreatedAt).add(5.5, 'hours').format('DD/MM/YYYY HH:mm A');
+            // object.CreatedAt= Moment(object.CreatedAt).add(5.5, 'hours').format('DD-MM-YYYY HH:mm A');
 
             for (let i = 0; i < object.Options.length; i++) {
                 for (let j = 0; j < object.Options[i].Options.length; j++) {
@@ -959,7 +959,7 @@ exports.getQueryDetailById = async (req, res) => {
         responseObject.Category = result[0].Category;
         responseObject.Category = categoryArray;
         responseObject.IsPublic = result[0].IsPublic;
-        responseObject.EndDate = Moment.unix(result[0].EndDate).format('YYYY-MM-DD'); //format('DD/MM/YYYY hh:mm A');
+        responseObject.EndDate = Moment.unix(result[0].EndDate).format('DD-MM-YYYY'); //format('DD-MM-YYYY hh:mm A');
         responseObject.CreatedAt = result[0].CreatedAt;
         responseObject.Options = result[0].Options[0].Options;
         responseObject.OptionType = result[0].Options[0].OptionType;
@@ -1196,9 +1196,9 @@ exports.updatePoll = async (req, res) => {
             return new Exception('ValidationError', 'Please Provide EndDate').sendError();
         } else {
 
-            if (!Moment(endDate, 'DD/MM/YYYY hh:mm A', true).isValid()) {
-                return new Exception('ValidationError', 'End Date Must Be DD/MM/YYYY hh:mm A (25/05/2020 05:10 AM) ').sendError();
-            } else if (Moment(endDate, 'DD/MM/YYYY hh:mm A') < Moment()) {
+            if (!Moment(endDate, 'DD-MM-YYYY hh:mm A', true).isValid()) {
+                return new Exception('ValidationError', 'End Date Must Be DD-MM-YYYY hh:mm A (25/05/2020 05:10 AM) ').sendError();
+            } else if (Moment(endDate, 'DD-MM-YYYY hh:mm A') < Moment()) {
                 return new Exception('ValidationError', 'Please Provide Valid EndDate').sendError();
             }
         }
@@ -1233,7 +1233,7 @@ exports.updatePoll = async (req, res) => {
             }, {
                 $set: {
                     "ChartOption": chartOption,
-                    "EndDate": Moment(endDate, 'DD/MM/YYYY hh:mm A').unix()
+                    "EndDate": Moment(endDate, 'DD-MM-YYYY').unix()
                 }
             });
         }
@@ -1283,7 +1283,7 @@ exports.updatePoll = async (req, res) => {
                     "Category": categoryArray,
                     "IsPublic": isPublic,
                     "ChartOption": chartOption,
-                    "EndDate": Moment(endDate, 'DD/MM/YYYY hh:mm A').unix(),
+                    "EndDate": Moment(endDate, 'DD-MM-YYYY').unix(),
                     "CreatedAt": new Moment(),
                     "InActive": false
                 }
@@ -2675,4 +2675,5 @@ exports.dropDatabase = async (req, res) => {
         return new Exception('GeneralError').sendError(e);
     }
 }
+
 
