@@ -406,7 +406,7 @@ exports.createPoll = async (req, res) => {
         postData.TotalLikes = 0;
         postData.TotalDisLikes = 0;
         postData.TotalVotes = 0;
-        postData.EndDate = Moment(endDate, 'DD-MM-YYYY').unix();
+        postData.EndDate = Moment(endDate, 'DD/MM/YYYY').unix();
         postData.CreatedAt = new Moment();
         postData.InActive = false;
         postData.File = "";
@@ -691,8 +691,7 @@ exports.getQuery = async (req, res) => {
         //console.log(result[0]);
         let newArray = result[0].Records.map(function (object) {
 
-            object.EndDate = Moment.unix(object.EndDate).format('DD-MM-YYYY');
-
+            object.EndDate = Moment.unix(object.EndDate).format('DD/MM/YYYY');
             // object.CreatedAt= Moment(object.CreatedAt).add(5.5, 'hours').format('DD-MM-YYYY HH:mm A');
 
             for (let i = 0; i < object.Options.length; i++) {
@@ -959,7 +958,7 @@ exports.getQueryDetailById = async (req, res) => {
         responseObject.Category = result[0].Category;
         responseObject.Category = categoryArray;
         responseObject.IsPublic = result[0].IsPublic;
-        responseObject.EndDate = Moment.unix(result[0].EndDate).format('DD-MM-YYYY'); //format('DD-MM-YYYY hh:mm A');
+        responseObject.EndDate = Moment.unix(result[0].EndDate).format('DD/MM/YYYY'); //format('DD-MM-YYYY hh:mm A');
         responseObject.CreatedAt = result[0].CreatedAt;
         responseObject.Options = result[0].Options[0].Options;
         responseObject.OptionType = result[0].Options[0].OptionType;
