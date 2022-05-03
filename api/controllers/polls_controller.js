@@ -1184,9 +1184,9 @@ exports.updatePoll = async (req, res) => {
         }
         // }
 
-        if (!category) {
-            return new Exception('ValidationError', 'Please Provide Category').sendError();
-        }
+        // if (!category) {
+        //     return new Exception('ValidationError', 'Please Provide Category').sendError();
+        // }
         // if(!queryType){
         //     return new Exception('ValidationError', 'Please Provide QueryType').sendError();
         // }
@@ -1194,10 +1194,9 @@ exports.updatePoll = async (req, res) => {
         if (!endDate) {
             return new Exception('ValidationError', 'Please Provide EndDate').sendError();
         } else {
-
-            if (!Moment(endDate, 'DD-MM-YYYY hh:mm A', true).isValid()) {
+            if (!Moment(endDate, 'DD/MM/YYYY', true).isValid()) {
                 return new Exception('ValidationError', 'End Date Must Be DD-MM-YYYY hh:mm A (25/05/2020 05:10 AM) ').sendError();
-            } else if (Moment(endDate, 'DD-MM-YYYY hh:mm A') < Moment()) {
+            } else if (Moment(endDate, 'DD/MM/YYYY') < Moment()) {
                 return new Exception('ValidationError', 'Please Provide Valid EndDate').sendError();
             }
         }
